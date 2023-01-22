@@ -44,22 +44,36 @@ const UserSchema = new mongoose.Schema(
       type: String,
       require: true,
     },
+
     followers: {
       type: Array,
       default: [],
     },
+
     followings: {
       type: Array,
       default: [],
     },
+
     number: {
       type: Number,
       require: true,
       unique: true,
     },
+
     profilePicture: {
       type: String,
       default: "",
+    },
+
+    newMessages: {
+      type: Object,
+      default: {},
+    },
+
+    status: {
+      type: String,
+      default: "online",
     },
   },
   {

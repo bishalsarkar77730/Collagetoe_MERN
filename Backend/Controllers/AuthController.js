@@ -39,6 +39,7 @@ export const signup = async (req, res, next) => {
       routepoints: req.body.routepoints,
       collage: req.body.collage,
       number: req.body.number,
+      profilePicture: req.file.filename,
     };
 
     const salt = bcrypt.genSaltSync(10);
@@ -75,36 +76,27 @@ export const signin = async (req, res, next) => {
         success: false,
       });
     }
+    const mainuser = await User.findOneAndUpdate(
+      username,
+      {
+        status: "online",
+      },
+      { new: true }
+    );
     const token = jwt.sign(
       {
         id: user._id,
       },
       process.env.JWT
     );
-    // const details = user
+
     return res
       .cookie("access_token", token, {
         httpOnly: true,
         maxAge: 10 * 60 * 60 * 1000,
       })
       .status(200)
-      .json(user);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// logout
-export const LogOut = (req, res, next) => {
-  try {
-    res.cookie("access_token", null, {
-      expiresIn: new Date(Date.now()),
-      httpOnly: true,
-    });
-    res.status(200).json({
-      success: true,
-      message: "Logged Out",
-    });
+      .json(mainuser);
   } catch (error) {
     next(error);
   }

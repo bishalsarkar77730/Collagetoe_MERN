@@ -71,12 +71,38 @@ export const GetUser = async (req, res, next) => {
   }
 };
 
-// Get Followers
+// Follow a User
 
-export const GetFollowers = async (req, res, next) => {
+export const FollowUSer = async (req, res, next) => {
   if (req.params.id === req.user.id) {
     try {
-      const user = await User.findById(req.params.userId);
+      const user = await User.findById(req.params.id);
+      const currentUser = await User.findById(req.body.userId);
+      if (!user.followers.includes(req.body.userId)) {
+        await user.updateOne({ $push: { followers: req.body.userId } });
+        await currentUser.updateOne({ $push: { followings: req.params.id } });
+        res.status(200).json("user has been followed");
+      } else {
+        res.status(403).json("you allready follow this user");
+      }
+    } catch (error) {
+      res.status(500).json(error);
+      next(error);
+    }
+  } else {
+    return res.status(400).json({
+      message: "You only follow a User By Your Account!",
+      success: false,
+    });
+  }
+};
+
+// Get Followings
+
+export const GetFollowings = async (req, res, next) => {
+  if (req.params.id === req.user.id) {
+    try {
+      const user = await User.findById(req.params.id);
       const friends = await Promise.all(
         user.followings.map((friendId) => {
           return User.findById(friendId);
@@ -100,27 +126,30 @@ export const GetFollowers = async (req, res, next) => {
   }
 };
 
-// Follow a User
+// Get Followers
 
-export const FollowUSer = async (req, res, next) => {
+export const GetFollowers = async (req, res, next) => {
   if (req.params.id === req.user.id) {
     try {
       const user = await User.findById(req.params.id);
-      const currentUser = await User.findById(req.body.userId);
-      if (!user.followers.includes(req.body.userId)) {
-        await user.updateOne({ $push: { followers: req.body.userId } });
-        await currentUser.updateOne({ $push: { followings: req.params.id } });
-        res.status(200).json("user has been followed");
-      } else {
-        res.status(403).json("you allready follow this user");
-      }
+      const friends = await Promise.all(
+        user.followers.map((friendId) => {
+          return User.findById(friendId);
+        })
+      );
+      let friendList = [];
+      friends.map((friend) => {
+        const { _id, username, profilePicture } = friend;
+        friendList.push({ _id, username, profilePicture });
+      });
+      res.status(200).json(friendList);
     } catch (error) {
       res.status(500).json(error);
       next(error);
     }
   } else {
     return res.status(400).json({
-      message: "You only follow a User By Your Account!",
+      message: "You can View only your Followers!",
       success: false,
     });
   }
@@ -149,5 +178,27 @@ export const UnFollowUSer = async (req, res, next) => {
       message: "You only Unfollow a User By Your Account!",
       success: false,
     });
+  }
+};
+
+// Filters
+
+export const fillterUser = async (req, res, next) => {
+  try {
+    let fillterdata = await User.find({ city: { $eq: req.query.city } });
+    res.status(200).json(fillterdata);
+  } catch (error) {
+    console.log(error);
+    res.status(400);
+  }
+};
+
+export const fillterbyroute = async (req, res, next) => {
+  try {
+    let data = await User.find({ routepoints: { $eq: req.query.routepoints } });
+    res.status(200).json(data);
+  } catch (error) {
+    console.log(error);
+    res.status(400);
   }
 };
