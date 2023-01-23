@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import axios from "axios";
 import { Col, Container, Form, Row, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import {AppContext} from "../../Context/appContext"
 import "./Login.css";
 import {
   loginStart,
@@ -13,6 +14,7 @@ import {
 function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { socket } = useContext(AppContext);
   const [username, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const handleLogin = async (e) => {
@@ -24,6 +26,8 @@ function Login() {
         password,
       });
       dispatch(loginSuccess(res.data));
+      // socket work
+      socket.emit("new-user");
       navigate("/chat");
     } catch (error) {
       dispatch(loginFailure());
